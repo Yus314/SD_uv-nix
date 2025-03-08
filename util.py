@@ -6,6 +6,7 @@ from PIL import Image
 from skimage.metrics import structural_similarity as ssim
 from torchvision import transforms as tfms
 from transformers import CLIPTextModel, CLIPTokenizer
+from pathlib import Path
 
 
 def model_load(device: str):
@@ -46,7 +47,7 @@ def model_load(device: str):
     return vae, tokenizer, text_encoder, unet, scheduler
 
 
-def load_image(path: str, device: str):
+def load_image(path: Path, device: str):
     y: Image = Image.open(path).convert("RGB").resize((512, 512))
     y = tfms.functional.to_tensor(y)
     y = y.to(device)
