@@ -15,6 +15,8 @@ def perform_sampling(
     generator,
     device,
     num_inference_steps,
+    A,
+    Ap,
 ):
     with autocast("cuda"):
         for i, t in enumerate(scheduler.timesteps):
@@ -30,6 +32,8 @@ def perform_sampling(
             noise_pred = noise_pred_uncond + guidance_scale * (
                 noise_pred_text - noise_pred_uncond
             )
+
+            # latents = scheduler.step(noise_pred, t, latents, return_dict=False)[0]
 
             prev_timestep = (
                 t
@@ -56,7 +60,11 @@ def perform_sampling(
                 0.5
             ) * pred_epsilon
 
-            prev_origiral_sample = mask * latents_y + (1 - mask) * pred_original_sample
+            pred_original_sample = pred_original_sample - Ap(
+                A(pred_original_sample) - latents_y
+            )
+            # pred_original_sample = mask * latents_y + (1 - mask) * pred_original_sample
+
             prev_sample = (
                 alpha_prod_t_prev ** (0.5) * pred_original_sample
                 + pred_sample_direction
