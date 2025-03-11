@@ -1,13 +1,9 @@
-from config import input_dir, output_dir, A, Ap
-from process import process_images_in_directory
+from config import toml_file
+from process import process_images_from_toml
 
 
 def main():
-    if not input_dir.exists():
-        print(f"Error: 入力ディレクトリ {input_dir} が存在しません")
-        return
-
-    process_images_in_directory(input_dir, output_dir, A, Ap)
+    process_images_from_toml(toml_file)
 
 
 if __name__ == "__main__":

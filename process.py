@@ -7,6 +7,7 @@ from util import gen_text_embeddings, load_image, model_load
 from config import *
 from sampler import perform_sampling
 import numpy as np
+import tqdm
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -15,7 +16,7 @@ vae, tokenizer, text_encoder, unet, scheduler = model_load(device)
 generator = torch.manual_seed(seed)
 
 
-def process_image(image_path: Path, output_dir: Path, A, Ap):
+def process_image(image_path: Path, output_dir: Path, A, Ap, prompt):
     y = load_image(image_path, device)
 
     def get_mask_range(center, size):
@@ -86,11 +87,34 @@ def process_image(image_path: Path, output_dir: Path, A, Ap):
     images.save(output_path)
 
 
-def process_images_in_directory(input_dir: Path, output_dir: Path, A, Ap):
-    """ディレクトリ内のすべての画像を処理"""
-    image_extensions = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff"}
+# def process_images_in_directory(input_dir: Path, output_dir: Path, A, Ap):
+#    """ディレクトリ内のすべての画像を処理"""
+#    image_extensions = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff"}
+#    output_dir.mkdir(parents=True, exist_ok=True)
+
+#    for image_path in input_dir.iterdir():
+#        if image_path.suffix.lower() in image_extensions and image_path.is_file():
+#            process_image(image_path, output_dir, A, Ap)
+
+
+def process_images_from_toml(toml_file: str):
+    """TOMLファイルから画像を読み込み補完を行なう"""
+    data = toml.load(toml_file)
+
+    if not data:
+        print(f"Warning: No data found in {toml_file}")
+        return
+
+    output_dir = Path(f"./Data/OUT/BSDS500/{mask_size}_lama/")
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for image_path in input_dir.iterdir():
-        if image_path.suffix.lower() in image_extensions and image_path.is_file():
-            process_image(image_path, output_dir, A, Ap)
+    for info in tqdm.tqdm(data.values()):
+        image_path = Path(info["imagepath"])
+        prompt = info.get("description", "")
+
+        if image_path.exists() and image_path.is_file():
+            process_image(image_path, output_dir, A, Ap, prompt)
+        else:
+            print(f"Warning: {image_path} does not exist or is not a file.")
+
+    print(f"Processing completed. Output saved in {output_dir}")
