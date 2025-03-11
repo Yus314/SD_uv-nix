@@ -8,6 +8,7 @@ from config import *
 from sampler import perform_sampling
 import numpy as np
 import tqdm
+import toml
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -18,12 +19,6 @@ generator = torch.manual_seed(seed)
 
 def process_image(image_path: Path, output_dir: Path, A, Ap, prompt):
     y = load_image(image_path, device)
-
-    def get_mask_range(center, size):
-        return center - size // 2, center + size // 2 - 1
-
-    mask_stt_h, mask_end_h = get_mask_range(height // 2, mask_size)
-    mask_stt_w, mask_end_w = get_mask_range(width // 2, mask_size)
 
     y[
         :,
@@ -105,8 +100,9 @@ def process_images_from_toml(toml_file: str):
         print(f"Warning: No data found in {toml_file}")
         return
 
-    output_dir = Path(f"./Data/OUT/BSDS500/{mask_size}_lama/")
+    output_dir = Path(f"./Data/OUT/{data_set}/{mask_size}_{prompt_gen}/")
     output_dir.mkdir(parents=True, exist_ok=True)
+    print(f"config Data: {data_set} mask_size: {mask_size} prompt_gen: {prompt_gen}")
 
     for info in tqdm.tqdm(data.values()):
         image_path = Path(info["imagepath"])

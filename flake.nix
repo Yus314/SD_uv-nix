@@ -139,6 +139,7 @@
           packages = [
             virtualenv
             pkgs.uv
+            pkgs.ollama
           ];
           env = {
             LD_LIBRARY_PATH = "${
